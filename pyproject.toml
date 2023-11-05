@@ -10,14 +10,17 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.11"
-fpdf2 = "^2.7.6"
-python-docx = "^1.0.1"
-beautifulsoup4 = "^4.12.2"
+fpdf2 = {version = "^2.7.6", optional = true}
+python-docx = {version = "^1.1.0", optional = true}
+beautifulsoup4 = {version = "^4.12.2", optional = true}
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 pytest = "^7.4.2"
 factory_boy = "^3.3.0"
 freezegun = "^1.2.2"
+fpdf2 = "^2.7.6"
+python-docx = "^1.1.0"
+beautifulsoup4 = "^4.12.2"
 
 [build-system]
 requires = ["poetry-core"]
