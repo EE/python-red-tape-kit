@@ -2,7 +2,7 @@ from logging import getLogger
 
 from fpdf import FPDF, TitleStyle, XPos, YPos
 
-from .doc_ast import DefinitionList, Image, Paragraph, Section, Sequence, Table, UnorderedList
+from .doc_ast import DefinitionList, Image, InlineSequence, Paragraph, Section, Sequence, Table, Text, UnorderedList
 
 
 logger = getLogger(__name__)
@@ -10,6 +10,7 @@ logger = getLogger(__name__)
 
 class FPDFRenderer(FPDF):
     default_font_family = 'helvetica'
+    UNORDERED_LIST_BULLET = '-'
 
     def __init__(self, document, **kwargs):
         super().__init__(**kwargs, unit='mm', format='A4')
@@ -100,22 +101,21 @@ class FPDFRenderer(FPDF):
         return anything_generated
 
     def add_section(self, section, level):
-        self.start_section(section.title, level)
+        self.start_section(section.title.plain_string, level)
         return self.add_element(section.body, level + 1)
 
     def add_paragraph(self, paragraph):
-        self.write_lh(paragraph.text)
-        return True
+        return self.add_inline_element(paragraph.text)
 
     def add_table(self, table_data):
         with self.table() as table:
             heading_row = table.row()
             for heading in table_data.headings:
-                heading_row.cell(heading)
+                heading_row.cell(heading.plain_string)
             for data_row in table_data.rows:
                 table_row = table.row()
                 for data_cell in data_row:
-                    table_row.cell(data_cell)
+                    table_row.cell(data_cell.plain_string)
         return True
 
     def add_unordered_list(self, unordered_list):
@@ -127,7 +127,7 @@ class FPDFRenderer(FPDF):
                 self.ln(7)
             with self.unbreakable():
                 self.set_x(orig_left_margin)
-                self.cell(text='•')
+                self.cell(text=self.UNORDERED_LIST_BULLET)
                 self.set_x(new_left_margin)
                 self.add_element(item, level=None)
         self.set_left_margin(orig_left_margin)
@@ -146,6 +146,24 @@ class FPDFRenderer(FPDF):
     def add_image(self, image):
         self.image(image.image_io, w=100)
         return True
+
+    def add_inline_element(self, inline_element):
+        if isinstance(inline_element, Text):
+            return self.add_text(inline_element)
+        elif isinstance(inline_element, InlineSequence):
+            return self.add_inline_sequence(inline_element)
+        else:
+            raise ValueError(f'Unknown inline element type {inline_element}')
+
+    def add_text(self, text):
+        self.write_lh(text.text)
+        return text != ''
+
+    def add_inline_sequence(self, inline_sequence):
+        anything_generated = False
+        for sub_element in inline_sequence.items:
+            anything_generated |= self.add_inline_element(sub_element)
+        return anything_generated
 
     def header(self):
         pass

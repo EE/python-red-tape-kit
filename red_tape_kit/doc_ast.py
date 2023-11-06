@@ -17,6 +17,14 @@ DocumentElement = Union[
     List['DocumentElement'],  # List[DocumentElement] is treated as a Sequence
 ]
 
+InlineElement = Union[
+    'Text',
+    'InlineSequence',
+
+    # sugar elements, removed during normalization
+    str,  # str is treated as a Text
+]
+
 
 @dataclass
 class Document:
@@ -49,12 +57,12 @@ class Document:
 
 @dataclass
 class Section:
-    title: str
+    title: InlineElement
     body: DocumentElement
 
     def normalized(self) -> 'Section':
         return Section(
-            title=self.title,
+            title=normalized_inline(self.title),
             body=_normalized(self.body),
         )
 
@@ -71,19 +79,24 @@ class Sequence:
 
 @dataclass
 class Paragraph:
-    text: str
+    text: InlineElement
 
     def normalized(self) -> 'Paragraph':
-        return self
+        return Paragraph(
+            text=normalized_inline(self.text),
+        )
 
 
 @dataclass
 class Table:
-    headings: List[str]
-    rows: List[List[str]]
+    headings: List[InlineElement]
+    rows: List[List[InlineElement]]
 
     def normalized(self) -> 'Table':
-        return self
+        return Table(
+            headings=[normalized_inline(heading) for heading in self.headings],
+            rows=[[normalized_inline(cell) for cell in row] for row in self.rows],
+        )
 
 
 @dataclass
@@ -98,11 +111,14 @@ class UnorderedList:
 
 @dataclass
 class DefinitionList:
-    items: Dict[str, DocumentElement]
+    items: Dict[InlineElement, DocumentElement]
 
     def normalized(self) -> 'DefinitionList':
         return DefinitionList(
-            items={key: _normalized(value) for key, value in self.items.items()},
+            items={
+                normalized_inline(key): _normalized(value)
+                for key, value in self.items.items()
+            },
         )
 
 
@@ -110,10 +126,14 @@ class DefinitionList:
 class Image:
     image_io: BinaryIO
     image_format: str
-    caption: str
+    caption: InlineElement
 
     def normalized(self) -> 'Image':
-        return self
+        return Image(
+            image_io=self.image_io,
+            image_format=self.image_format,
+            caption=normalized_inline(self.caption),
+        )
 
 
 def _normalized(element: DocumentElement) -> DocumentElement:
@@ -123,5 +143,40 @@ def _normalized(element: DocumentElement) -> DocumentElement:
         return DefinitionList(items=element).normalized()
     elif isinstance(element, list):
         return Sequence(items=element).normalized()
+    else:
+        return element.normalized()
+
+
+@dataclass(frozen=True)
+class Text:
+    text: str
+
+    def normalized(self) -> 'Text':
+        return self
+
+    @property
+    def plain_string(self) -> str:
+        return self.text
+
+
+@dataclass(frozen=True)
+class InlineSequence:
+    items: List[InlineElement]
+
+    def normalized(self) -> 'InlineSequence':
+        return InlineSequence(
+            items=[normalized_inline(item) for item in self.items],
+        )
+
+    @property
+    def plain_string(self) -> str:
+        return ''.join(item.plain_string for item in self.items)
+
+
+def normalized_inline(element: InlineElement) -> InlineElement:
+    if isinstance(element, str):
+        return Text(text=element).normalized()
+    elif isinstance(element, list):
+        return InlineSequence(items=element).normalized()
     else:
         return element.normalized()

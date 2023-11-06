@@ -1,7 +1,7 @@
 import xml.etree.ElementTree as ET
 from base64 import b64encode
 
-from .doc_ast import DefinitionList, Image, Paragraph, Section, Sequence, Table, UnorderedList
+from .doc_ast import DefinitionList, Image, InlineSequence, Paragraph, Section, Sequence, Table, Text, UnorderedList
 
 
 class HTMLRenderer:
@@ -53,7 +53,7 @@ class HTMLRenderer:
         elif isinstance(element, Image):
             self.add_image(html_el, element)
         else:
-            raise ValueError(f'Unknown element type {element}')
+            raise ValueError(f'Unknown element type {type(element)}')
 
     def add_sequence(self, html_el, sequence, heading_level):
         for i, sub_element in enumerate(sequence.items):
@@ -64,12 +64,12 @@ class HTMLRenderer:
         if heading_level == 2:
             html_el = ET.SubElement(html_el, 'section')
         heading = ET.SubElement(html_el, f'h{heading_level}')
-        heading.text = section.title
+        self.add_inline_element(heading, section.title)
         self.add_element(html_el, section.body, heading_level + 1)
 
     def add_paragraph(self, html_el, paragraph):
         p = ET.SubElement(html_el, 'p')
-        p.text = paragraph.text
+        self.add_inline_element(p, paragraph.text)
 
     def add_table(self, html_el, table_data):
         table = ET.SubElement(html_el, 'table')
@@ -77,13 +77,13 @@ class HTMLRenderer:
         tr = ET.SubElement(thead, 'tr')
         for heading in table_data.headings:
             th = ET.SubElement(tr, 'th')
-            th.text = heading
+            self.add_inline_element(th, heading)
         tbody = ET.SubElement(table, 'tbody')
         for data_row in table_data.rows:
             tr = ET.SubElement(tbody, 'tr')
             for data_cell in data_row:
                 td = ET.SubElement(tr, 'td')
-                td.text = data_cell
+                self.add_inline_element(td, data_cell)
 
     def add_unordered_list(self, html_el, unordered_list):
         ul = ET.SubElement(html_el, 'ul')
@@ -95,7 +95,7 @@ class HTMLRenderer:
         dl = ET.SubElement(html_el, 'dl')
         for term, definition in definition_list.items.items():
             dt = ET.SubElement(dl, 'dt')
-            dt.text = term
+            self.add_inline_element(dt, term)
             dd = ET.SubElement(dl, 'dd')
             self.add_element(dd, definition, heading_level=None)
 
@@ -110,7 +110,16 @@ class HTMLRenderer:
         b64_str = b64encode(image.image_io.read()).decode()
         img_src = f'data:{content_type};base64,{b64_str}'
         img = ET.SubElement(figure, 'img', src=img_src)
-        img.set('alt', image.caption)
+        img.set('alt', image.caption.plain_string)
+
+    def add_inline_element(self, html_el, element):
+        if isinstance(element, Text):
+            ET.SubElement(html_el, 'span').text = element.text
+        elif isinstance(element, InlineSequence):
+            for sub_element in element.items:
+                self.add_inline_element(html_el, sub_element)
+        else:
+            raise ValueError(f'Unknown inline element type {type(element)}')
 
     def render(self, f):
         ET.ElementTree(self.root).write(f, encoding='utf-8', method='html')

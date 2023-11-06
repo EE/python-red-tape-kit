@@ -90,7 +90,7 @@ class DOCXRenderer:
             first_in_list_item = False
 
     def add_section(self, section, section_level):
-        self.docx.add_heading(section.title, section_level)
+        self.docx.add_heading(section.title.plain_string, section_level)
         self.add_element(section.body, section_level + 1)
 
     def add_paragraph(self, paragraph, list_level, first_in_list_item):
@@ -109,18 +109,18 @@ class DOCXRenderer:
                 'Invalid paragraph config: '
                 f'list_level={list_level}, first_in_list_item={first_in_list_item}'
             )
-        self.docx.add_paragraph(paragraph.text, style=style)
+        self.docx.add_paragraph(paragraph.text.plain_string, style=style)
 
     def add_table(self, table_data):
         table = self.docx.add_table(rows=1, cols=len(table_data.headings))
         table.style = 'Table Grid'
         hdr_cells = table.rows[0].cells
         for i, heading in enumerate(table_data.headings):
-            hdr_cells[i].text = heading
+            hdr_cells[i].text = heading.plain_string
         for data_row in table_data.rows:
             row_cells = table.add_row().cells
             for i, data_cell in enumerate(data_row):
-                row_cells[i].text = data_cell
+                row_cells[i].text = data_cell.plain_string
 
     def add_unordered_list(self, unordered_list, list_level):
         if list_level is None:
@@ -139,7 +139,7 @@ class DOCXRenderer:
 
     def add_image(self, image):
         self.docx.add_picture(image.image_io, width=docx.shared.Inches(6))
-        self.docx.add_paragraph(image.caption)
+        self.docx.add_paragraph(image.caption.plain_string)
 
     def set_hr(self, paragraph, location='top'):
         """set bottom border on a paragraph

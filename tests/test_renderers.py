@@ -5,7 +5,7 @@ import factory
 import pytest
 from freezegun import freeze_time
 
-from red_tape_kit.doc_ast import Document, Paragraph, Sequence
+from red_tape_kit.doc_ast import Document, InlineSequence, Paragraph, Sequence, Text
 from red_tape_kit.docx import DOCXRenderer
 from red_tape_kit.html import HTMLRenderer
 from red_tape_kit.pdf import FPDFRenderer
@@ -46,48 +46,89 @@ class DocumentFactory(factory.Factory):
 
 
 def test_nested_sequence(render):
+    a = Paragraph(text=Text('A'))
+    b = Paragraph(text=Text('B'))
+    c = Paragraph(text=Text('C'))
     doc_a = DocumentFactory(
         body=Sequence(items=[
-            Sequence(items=[
-                Paragraph(text='A'),
-                Paragraph(text='B'),
-            ]),
-            Paragraph(text='C'),
+            Sequence(items=[a, b]),
+            c
         ]),
     )
     doc_b = DocumentFactory(
         body=Sequence(items=[
-            Paragraph(text='A'),
-            Sequence(items=[
-                Paragraph(text='B'),
-                Paragraph(text='C'),
-            ]),
+            a,
+            Sequence(items=[b, c]),
         ]),
     )
     assert render(doc_a) == render(doc_b)
 
 
 def test_single_element_sequence(render):
+    a = Paragraph(text=Text('A'))
     doc_a = DocumentFactory(
-        body=Sequence(items=[
-            Paragraph(text='A'),
-        ]),
+        body=Sequence(items=[a]),
     )
     doc_b = DocumentFactory(
-        body=Paragraph(text='A'),
+        body=a,
     )
     assert render(doc_a) == render(doc_b)
 
 
 def test_empty_sequence(render):
+    a = Paragraph(text=Text('A'))
     doc_a = DocumentFactory(
         body=Sequence(items=[
             Sequence(items=[]),
-            Paragraph(text='A'),
+            a,
         ]),
     )
     doc_b = DocumentFactory(
-        body=Paragraph(text='A'),
+        body=a,
+    )
+    assert render(doc_a) == render(doc_b)
+
+
+def test_nested_inline_sequence(render):
+    a = Text('A')
+    b = Text('B')
+    c = Text('C')
+    doc_a = DocumentFactory(
+        body=Paragraph(text=InlineSequence(items=[
+            InlineSequence(items=[a, b]),
+            c
+        ])),
+    )
+    doc_b = DocumentFactory(
+        body=Paragraph(text=InlineSequence(items=[
+            a,
+            InlineSequence(items=[b, c]),
+        ])),
+    )
+    assert render(doc_a) == render(doc_b)
+
+
+def test_single_element_inline_sequence(render):
+    a = Text('A')
+    doc_a = DocumentFactory(
+        body=Paragraph(text=InlineSequence(items=[a])),
+    )
+    doc_b = DocumentFactory(
+        body=Paragraph(text=a),
+    )
+    assert render(doc_a) == render(doc_b)
+
+
+def test_empty_inline_sequence(render):
+    a = Text('A')
+    doc_a = DocumentFactory(
+        body=Paragraph(text=InlineSequence(items=[
+            InlineSequence(items=[]),
+            a,
+        ])),
+    )
+    doc_b = DocumentFactory(
+        body=Paragraph(text=a),
     )
     assert render(doc_a) == render(doc_b)
 
