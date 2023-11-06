@@ -1,6 +1,6 @@
 import datetime
 
-from red_tape_kit.doc_ast import Document, Section
+from red_tape_kit.doc_ast import Document, Section, Table
 
 
 doc = Document(
@@ -44,15 +44,27 @@ doc.body.append(Section(
     body=[
         'This is a definition list:',
         {
-            'term': 'term 1',
-            'definition': 'definition 1',
-        },
-        {
-            'term': 'term 2',
-            'definition': 'definition 2',
-        },
+            'term 1': 'definition 1',
+            'term 2': 'definition 2',
+        }
     ]
 ))
+
+
+doc.body.append(Section(
+    title='A table',
+    body=[
+        'This is a table, but may be not that much pretty:',
+        Table(
+            headings=['Heading 1', 'Heading 2'],
+            rows=[
+                ['A1', 'A2'],
+                ['B1', 'B2'],
+            ],
+        ),
+    ],
+))
+
 
 doc = doc.normalized()
 
