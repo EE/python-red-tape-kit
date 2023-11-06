@@ -9,7 +9,7 @@ doc = Document(
     subject='The Subject',
     author='The Author',
     creator='The Creator',
-    creation_date=datetime.datetime(2020, 1, 1, 12, 33, 45),
+    creation_date=datetime.datetime(2020, 1, 1, 12, 33, 45, tzinfo=datetime.timezone.utc),
     creation_place='The Place',
     body=[],
 )
