@@ -9,6 +9,7 @@ logger = getLogger(__name__)
 
 
 class FPDFRenderer(FPDF):
+    DEFAULT_LINE_HEIGHT = 1.5  # relative to font size
     default_font_family = 'helvetica'
     UNORDERED_LIST_BULLET = '-'
 
@@ -47,10 +48,10 @@ class FPDFRenderer(FPDF):
 
     def set_meta(self):
         self.set_lang(self.document.language_code)
-        self.set_title(self.document.title)
-        self.set_subject(self.document.subject)
-        self.set_author(self.document.author)
-        self.set_creator(self.document.creator)
+        self.set_title(self.document.title.plain_string)
+        self.set_subject(self.document.subject.plain_string)
+        self.set_author(self.document.author.plain_string)
+        self.set_creator(self.document.creator.plain_string)
         self.set_creation_date(self.document.creation_date)
 
     def add_cover(self):
@@ -58,10 +59,16 @@ class FPDFRenderer(FPDF):
         self.set_y(140)
         self.set_x(60)
         self.set_font(self.default_font_family, size=24)
-        self.cell_nl(text=self.document.title)
+        self.add_inline_element(self.document.title)
+        self.ln(self.get_line_height())
         self.set_font(self.default_font_family, size=12)
-        self.cell_nl(text=self.document.subject)
-        self.cell_nl(text=self.document.author)
+        self.set_x(60)
+        self.add_inline_element(self.document.subject)
+        self.ln(self.get_line_height())
+        self.set_x(60)
+        self.add_inline_element(self.document.author)
+        self.ln(self.get_line_height())
+        self.set_x(60)
         self.cell_nl(text=self.document.creation_place_and_date)
 
     def add_body(self):
@@ -178,19 +185,24 @@ class FPDFRenderer(FPDF):
     def add_fonts(self):
         pass
 
-    def cell_nl(self, *args, **kwargs):
-        line_height = self.font_size_pt / self.k
+    def cell_nl(self, *args, line_height=None, **kwargs):
+        line_height = self.get_line_height(line_height)
         self.cell(
             *args,
             new_x=XPos.LEFT,
             new_y=YPos.NEXT,
-            h=line_height * 1.5,
+            h=line_height,
             **kwargs,
         )
 
-    def write_lh(self, text, line_height=1.5):
-        line_height_abs = self.font_size_pt / self.k * line_height
+    def write_lh(self, text, line_height=None):
+        line_height_abs = self.get_line_height(line_height)
         self.write(h=line_height_abs, text=text)
+
+    def get_line_height(self, line_height=None):
+        if line_height is None:
+            line_height = self.DEFAULT_LINE_HEIGHT
+        return self.font_size * line_height
 
     def render(self, f):
         return self.output(f)
