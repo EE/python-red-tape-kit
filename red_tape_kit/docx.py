@@ -24,10 +24,10 @@ class DOCXRenderer:
 
     def set_meta(self):
         self.docx.core_properties.language = self.document.language_code
-        self.docx.core_properties.title = self.document.title
-        self.docx.core_properties.subject = self.document.subject
-        self.docx.core_properties.author = self.document.author
-        self.docx.core_properties.creator = self.document.creator
+        self.docx.core_properties.title = self.document.title.plain_string
+        self.docx.core_properties.subject = self.document.subject.plain_string
+        self.docx.core_properties.author = self.document.author.plain_string
+        self.docx.core_properties.creator = self.document.creator.plain_string
         self.docx.core_properties.created = self.document.creation_date
 
     def add_cover(self):
@@ -37,9 +37,12 @@ class DOCXRenderer:
         section.footer.is_linked_to_previous = False
         section.top_margin = docx.shared.Inches(4)
         section.left_margin = docx.shared.Inches(3)
-        self.docx.add_heading(self.document.title, 0)
-        self.docx.add_paragraph(self.document.subject)
-        self.docx.add_paragraph(f'Autor: {self.document.author}\n{self.document.creation_place_and_date}')
+        self.docx.add_heading(self.document.title.plain_string, 0)
+        self.docx.add_paragraph(self.document.subject.plain_string)
+        self.docx.add_paragraph(
+            f'Autor: {self.document.author.plain_string}\n'
+            f'{self.document.creation_place_and_date}'
+        )
 
     def add_body(self):
         body_section = self.docx.add_section()
@@ -49,7 +52,7 @@ class DOCXRenderer:
         # header config
         body_section.header.is_linked_to_previous = False
         p = body_section.header.add_paragraph(
-            f'{self.document.title}\n{self.document.subject}',
+            f'{self.document.title.plain_string}\n{self.document.subject.plain_string}',
             style='Header',
         )
         # TODO: header border should be ideally defined in the "Header" style
@@ -58,7 +61,7 @@ class DOCXRenderer:
         # footer config
         body_section.footer.is_linked_to_previous = False
         p = body_section.footer.add_paragraph(
-            f'{self.document.author}\n{self.document.creation_place_and_date}',
+            f'{self.document.author.plain_string}\n{self.document.creation_place_and_date}',
             style='Footer',
         )
         # TODO: footer border should be ideally defined in the "Footer" style

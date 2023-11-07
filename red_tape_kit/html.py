@@ -14,10 +14,10 @@ class HTMLRenderer:
     def add_head(self):
         head = ET.SubElement(self.root, 'head')
         ET.SubElement(head, 'meta', charset='utf-8')
-        ET.SubElement(head, 'title').text = self.document.title
-        ET.SubElement(head, 'meta', name='description', content=self.document.subject)
-        ET.SubElement(head, 'meta', name='author', content=self.document.author)
-        ET.SubElement(head, 'meta', name='generator', content=self.document.creator)
+        ET.SubElement(head, 'title').text = self.document.title.plain_string
+        ET.SubElement(head, 'meta', name='description', content=self.document.subject.plain_string)
+        ET.SubElement(head, 'meta', name='author', content=self.document.author.plain_string)
+        ET.SubElement(head, 'meta', name='generator', content=self.document.creator.plain_string)
         ET.SubElement(head, 'meta', name='created', content=self.document.creation_date.isoformat())
         ET.SubElement(head, 'meta', name='viewport', content='width=device-width, initial-scale=1')
         ET.SubElement(head, 'link', rel='stylesheet', href='https://edwardtufte.github.io/tufte-css/tufte.css')
@@ -29,11 +29,11 @@ class HTMLRenderer:
         self.add_element(article, self.document.body, heading_level=2)
 
     def add_cover(self, body):
-        ET.SubElement(body, 'h1').text = self.document.title
+        self.add_inline_element(ET.SubElement(body, 'h1'), self.document.title)
         subtitle = ET.SubElement(body, 'p', class_='subtitle')
-        ET.SubElement(subtitle, 'span').text = self.document.subject
+        self.add_inline_element(subtitle, self.document.subject)
         ET.SubElement(subtitle, 'br')
-        ET.SubElement(subtitle, 'span').text = self.document.author
+        self.add_inline_element(subtitle, self.document.author)
         ET.SubElement(subtitle, 'br')
         ET.SubElement(subtitle, 'span').text = self.document.creation_place_and_date
 

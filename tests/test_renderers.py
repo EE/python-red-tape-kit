@@ -36,12 +36,12 @@ class DocumentFactory(factory.Factory):
         model = Document
 
     language_code = 'en'
-    title = 'Test Document'
-    subject = 'Test Subject'
-    author = 'Test Author'
-    creator = 'Test Creator'
+    title = Text('Test Document')
+    subject = Text('Test Subject')
+    author = Text('Test Author')
+    creator = Text('Test Creator')
     creation_date = datetime.datetime(2017, 1, 1, 0, 0, 0)
-    creation_place = 'Test Place'
+    creation_place = Text('Test Place')
     body = factory.LazyAttribute(lambda o: Sequence(items=[]))
 
 

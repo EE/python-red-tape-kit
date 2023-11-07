@@ -1,62 +1,69 @@
+import datetime
 from dataclasses import dataclass
-from typing import BinaryIO, Dict, List, Union
+from typing import BinaryIO, Dict, List
 
 
-DocumentElement = Union[
-    'Section',
-    'Sequence',
-    'Paragraph',
-    'Table',
-    'UnorderedList',
-    'DefinitionList',
-    'Image',
+class DocumentElement:
+    """
+    Block element can be for example a section, a paragraph, a table, etc.
 
-    # sugar elements, removed during normalization
-    str,  # str is treated as a Paragraph
-    Dict[str, 'DocumentElement'],  # Dict[str, DocumentElement] is treated as a DefinitionList
-    List['DocumentElement'],  # List[DocumentElement] is treated as a Sequence
-]
+    We allow some sugar in AST. Rules for normalization:
+    - str is treated as a Paragraph
+    - Dict[str, DocumentElement] is treated as a DefinitionList
+    - List[DocumentElement] is treated as a Sequence
+    """
 
-InlineElement = Union[
-    'Text',
-    'InlineSequence',
+    def normalized(self) -> 'DocumentElement':
+        return self
 
-    # sugar elements, removed during normalization
-    str,  # str is treated as a Text
-]
+
+class InlineElement:
+    """
+    Inline element can be for example plain text, an emphasis, a link, etc.
+
+    We allow some sugar in AST. Rules for normalization:
+    - str is treated as a Text
+    """
+
+    def normalized(self) -> 'InlineElement':
+        return self
+
+    @property
+    def plain_string(self) -> str:
+        raise NotImplementedError
 
 
 @dataclass
 class Document:
     language_code: str
-    title: str
-    subject: str
-    author: str
-    creator: str
-    creation_date: str
-    creation_place: str
+    title: InlineElement
+    subject: InlineElement
+    author: InlineElement
+    creator: InlineElement
+    creation_date: datetime.datetime
+    creation_place: InlineElement
     body: DocumentElement
 
     @property
     def creation_place_and_date(self) -> str:
         date_str = self.creation_date.strftime('%Y-%m-%d')
-        return f'{self.creation_place}, {date_str}'
+        return f'{self.creation_place.plain_string}, {date_str}'
 
     def normalized(self) -> 'Document':
         return Document(
             language_code=self.language_code,
-            title=self.title,
-            subject=self.subject,
-            author=self.author,
-            creator=self.creator,
+            title=normalized_inline(self.title),
+            subject=normalized_inline(self.subject),
+            author=normalized_inline(self.author),
+            creator=normalized_inline(self.creator),
             creation_date=self.creation_date,
-            creation_place=self.creation_place,
+            creation_place=normalized_inline(self.creation_place),
             body=_normalized(self.body),
         )
 
 
 @dataclass
-class Section:
+class Section(DocumentElement):
     title: InlineElement
     body: DocumentElement
 
@@ -68,7 +75,7 @@ class Section:
 
 
 @dataclass
-class Sequence:
+class Sequence(DocumentElement):
     items: List[DocumentElement]
 
     def normalized(self) -> 'Sequence':
@@ -78,7 +85,7 @@ class Sequence:
 
 
 @dataclass
-class Paragraph:
+class Paragraph(DocumentElement):
     text: InlineElement
 
     def normalized(self) -> 'Paragraph':
@@ -88,7 +95,7 @@ class Paragraph:
 
 
 @dataclass
-class Table:
+class Table(DocumentElement):
     headings: List[InlineElement]
     rows: List[List[InlineElement]]
 
@@ -100,7 +107,7 @@ class Table:
 
 
 @dataclass
-class UnorderedList:
+class UnorderedList(DocumentElement):
     items: List[DocumentElement]
 
     def normalized(self) -> 'UnorderedList':
@@ -110,7 +117,7 @@ class UnorderedList:
 
 
 @dataclass
-class DefinitionList:
+class DefinitionList(DocumentElement):
     items: Dict[InlineElement, DocumentElement]
 
     def normalized(self) -> 'DefinitionList':
@@ -123,7 +130,7 @@ class DefinitionList:
 
 
 @dataclass
-class Image:
+class Image(DocumentElement):
     image_io: BinaryIO
     image_format: str
     caption: InlineElement
@@ -143,12 +150,14 @@ def _normalized(element: DocumentElement) -> DocumentElement:
         return DefinitionList(items=element).normalized()
     elif isinstance(element, list):
         return Sequence(items=element).normalized()
+    elif isinstance(element, InlineElement):
+        return Paragraph(text=element).normalized()
     else:
         return element.normalized()
 
 
 @dataclass(frozen=True)
-class Text:
+class Text(InlineElement):
     text: str
 
     def normalized(self) -> 'Text':
@@ -160,7 +169,7 @@ class Text:
 
 
 @dataclass(frozen=True)
-class InlineSequence:
+class InlineSequence(InlineElement):
     items: List[InlineElement]
 
     def normalized(self) -> 'InlineSequence':
