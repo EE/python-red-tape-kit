@@ -3,17 +3,17 @@ from dataclasses import dataclass
 from typing import BinaryIO, Dict, List
 
 
-class DocumentElement:
+class BlockElement:
     """
     Block element can be for example a section, a paragraph, a table, etc.
 
     We allow some sugar in AST. Rules for normalization:
     - str is treated as a Paragraph
-    - Dict[str, DocumentElement] is treated as a DefinitionList
-    - List[DocumentElement] is treated as a Sequence
+    - Dict[str, BlockElement] is treated as a DefinitionList
+    - List[BlockElement] is treated as a Sequence
     """
 
-    def normalized(self) -> 'DocumentElement':
+    def normalized(self) -> 'BlockElement':
         return self
 
 
@@ -42,7 +42,7 @@ class Document:
     creator: InlineElement
     creation_date: datetime.datetime
     creation_place: InlineElement
-    body: DocumentElement
+    body: BlockElement
 
     @property
     def creation_place_and_date(self) -> str:
@@ -58,34 +58,34 @@ class Document:
             creator=normalized_inline(self.creator),
             creation_date=self.creation_date,
             creation_place=normalized_inline(self.creation_place),
-            body=_normalized(self.body),
+            body=normalized_block(self.body),
         )
 
 
 @dataclass
-class Section(DocumentElement):
+class Section(BlockElement):
     title: InlineElement
-    body: DocumentElement
+    body: BlockElement
 
     def normalized(self) -> 'Section':
         return Section(
             title=normalized_inline(self.title),
-            body=_normalized(self.body),
+            body=normalized_block(self.body),
         )
 
 
 @dataclass
-class Sequence(DocumentElement):
-    items: List[DocumentElement]
+class Sequence(BlockElement):
+    items: List[BlockElement]
 
     def normalized(self) -> 'Sequence':
         return Sequence(
-            items=[_normalized(item) for item in self.items],
+            items=[normalized_block(item) for item in self.items],
         )
 
 
 @dataclass
-class Paragraph(DocumentElement):
+class Paragraph(BlockElement):
     text: InlineElement
 
     def normalized(self) -> 'Paragraph':
@@ -95,7 +95,7 @@ class Paragraph(DocumentElement):
 
 
 @dataclass
-class Table(DocumentElement):
+class Table(BlockElement):
     headings: List[InlineElement]
     rows: List[List[InlineElement]]
 
@@ -107,30 +107,30 @@ class Table(DocumentElement):
 
 
 @dataclass
-class UnorderedList(DocumentElement):
-    items: List[DocumentElement]
+class UnorderedList(BlockElement):
+    items: List[BlockElement]
 
     def normalized(self) -> 'UnorderedList':
         return UnorderedList(
-            items=[_normalized(item) for item in self.items],
+            items=[normalized_block(item) for item in self.items],
         )
 
 
 @dataclass
-class DefinitionList(DocumentElement):
-    items: Dict[InlineElement, DocumentElement]
+class DefinitionList(BlockElement):
+    items: Dict[InlineElement, BlockElement]
 
     def normalized(self) -> 'DefinitionList':
         return DefinitionList(
             items={
-                normalized_inline(key): _normalized(value)
+                normalized_inline(key): normalized_block(value)
                 for key, value in self.items.items()
             },
         )
 
 
 @dataclass
-class Image(DocumentElement):
+class Image(BlockElement):
     image_io: BinaryIO
     image_format: str
     caption: InlineElement
@@ -143,7 +143,7 @@ class Image(DocumentElement):
         )
 
 
-def _normalized(element: DocumentElement) -> DocumentElement:
+def normalized_block(element: BlockElement) -> BlockElement:
     if isinstance(element, str):
         return Paragraph(text=element).normalized()
     elif isinstance(element, dict):
