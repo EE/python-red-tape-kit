@@ -132,7 +132,7 @@ class FPDFRenderer(FPDF):
         for i, item in enumerate(unordered_list.items):
             if i > 0:
                 self.ln(7)
-            with self.unbreakable():
+            with self.unbreakable() as self:
                 self.set_x(orig_left_margin)
                 self.cell(text=self.UNORDERED_LIST_BULLET)
                 self.set_x(new_left_margin)
