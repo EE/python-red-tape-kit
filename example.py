@@ -1,6 +1,7 @@
 import datetime
+import io
 
-from red_tape_kit.doc_ast import Document, Section, Table, UnorderedList
+from red_tape_kit.doc_ast import Attachment, Document, InlineSequence, Section, Table, UnorderedList
 
 
 doc = Document(
@@ -20,6 +21,15 @@ doc.body.append(Section(
     body=[
         'The first paragraph.',
         'The second paragraph.',
+        InlineSequence([
+            'We allow ',
+            Attachment(
+                content_io=io.BytesIO(b'**Markdown** is sure better than PDFs.\n'),
+                basename='example.md',
+                text='attachments',
+            ),
+            '. Nice, isn\'t it?',
+        ]),
     ],
 ))
 

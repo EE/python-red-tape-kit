@@ -5,7 +5,7 @@ import factory
 import pytest
 from freezegun import freeze_time
 
-from red_tape_kit.doc_ast import Document, InlineSequence, Paragraph, Sequence, Text
+from red_tape_kit.doc_ast import Attachment, Document, InlineSequence, Paragraph, Sequence, Text
 from red_tape_kit.docx import DOCXRenderer
 from red_tape_kit.html import HTMLRenderer
 from red_tape_kit.pdf import FPDFRenderer
@@ -140,3 +140,14 @@ def test_not_dependent_on_current_date(render):
     with freeze_time('2017-01-02'):
         b = render(doc)
     assert a == b
+
+
+def test_empty_attachment_no_smoke(render):
+    doc = DocumentFactory(
+        body=Paragraph(text=Attachment(
+            content_io=io.BytesIO(),
+            basename='test.txt',
+            text=Text('Test'),
+        )),
+    )
+    assert render(doc)

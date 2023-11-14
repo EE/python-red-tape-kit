@@ -1,7 +1,9 @@
 import xml.etree.ElementTree as ET
 from base64 import b64encode
 
-from .doc_ast import DefinitionList, Image, InlineSequence, Paragraph, Section, Sequence, Table, Text, UnorderedList
+from .doc_ast import (
+    Attachment, DefinitionList, Image, InlineSequence, Paragraph, Section, Sequence, Table, Text, UnorderedList,
+)
 
 
 class HTMLRenderer:
@@ -118,8 +120,21 @@ class HTMLRenderer:
         elif isinstance(element, InlineSequence):
             for sub_element in element.items:
                 self.add_inline_element(html_el, sub_element)
+        elif isinstance(element, Attachment):
+            self.add_attachment(html_el, element)
         else:
             raise ValueError(f'Unknown inline element type {type(element)}')
+
+    def add_attachment(self, html_el, attachment):
+        a = ET.SubElement(html_el, 'a')
+        attachment.content_io.seek(0)
+        b64_str = b64encode(attachment.content_io.read()).decode()
+        a.set('download', attachment.basename)
+        a.set('target', '_blank')
+        a.set('rel', 'noopener noreferrer')
+        a.set('type', 'application/octet-stream')
+        a.set('href', f'data:application/octet-stream;base64,{b64_str}')
+        self.add_inline_element(a, attachment.text)
 
     def render(self, f):
         ET.ElementTree(self.root).write(f, encoding='utf-8', method='html')

@@ -182,6 +182,24 @@ class InlineSequence(InlineElement):
         return ''.join(item.plain_string for item in self.items)
 
 
+@dataclass(frozen=True)
+class Attachment(InlineElement):
+    content_io: BinaryIO
+    basename: str
+    text: InlineElement
+
+    def normalized(self) -> 'Attachment':
+        return Attachment(
+            content_io=self.content_io,
+            basename=self.basename,
+            text=normalized_inline(self.text),
+        )
+
+    @property
+    def plain_string(self) -> str:
+        return self.text.plain_string
+
+
 def normalized_inline(element: InlineElement) -> InlineElement:
     if isinstance(element, str):
         return Text(text=element).normalized()

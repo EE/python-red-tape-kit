@@ -2,7 +2,9 @@ from logging import getLogger
 
 from fpdf import FPDF, TitleStyle, XPos, YPos
 
-from .doc_ast import DefinitionList, Image, InlineSequence, Paragraph, Section, Sequence, Table, Text, UnorderedList
+from .doc_ast import (
+    Attachment, DefinitionList, Image, InlineSequence, Paragraph, Section, Sequence, Table, Text, UnorderedList,
+)
 
 
 logger = getLogger(__name__)
@@ -159,6 +161,8 @@ class FPDFRenderer(FPDF):
             return self.add_text(inline_element)
         elif isinstance(inline_element, InlineSequence):
             return self.add_inline_sequence(inline_element)
+        elif isinstance(inline_element, Attachment):
+            return self.add_attachment(inline_element)
         else:
             raise ValueError(f'Unknown inline element type {inline_element}')
 
@@ -171,6 +175,25 @@ class FPDFRenderer(FPDF):
         for sub_element in inline_sequence.items:
             anything_generated |= self.add_inline_element(sub_element)
         return anything_generated
+
+    def add_attachment(self, attachment):
+        self.add_inline_element(attachment.text)
+        attachment.content_io.seek(0)
+        b = attachment.content_io.read()
+        # fpdf validates that the bytes are truthy
+        # it seems like an error in this library
+        # here we work around it
+        b = TruthyBytes(b)
+        self.file_attachment_annotation(
+            file_path=None,
+            bytes=b,
+            basename=attachment.basename,
+            x=self.get_x(),
+            y=self.get_y(),
+            w=self.font_size,
+            h=self.font_size,
+        )
+        return True
 
     def header(self):
         pass
@@ -195,9 +218,9 @@ class FPDFRenderer(FPDF):
             **kwargs,
         )
 
-    def write_lh(self, text, line_height=None):
+    def write_lh(self, text, line_height=None, **kwargs):
         line_height_abs = self.get_line_height(line_height)
-        self.write(h=line_height_abs, text=text)
+        self.write(h=line_height_abs, text=text, **kwargs)
 
     def get_line_height(self, line_height=None):
         if line_height is None:
@@ -206,3 +229,8 @@ class FPDFRenderer(FPDF):
 
     def render(self, f):
         return self.output(f)
+
+
+class TruthyBytes(bytes):
+    def __bool__(self):
+        return True
