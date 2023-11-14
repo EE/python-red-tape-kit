@@ -1,6 +1,6 @@
 import datetime
 
-from red_tape_kit.doc_ast import Document, Section, Table
+from red_tape_kit.doc_ast import Document, Section, Table, UnorderedList
 
 
 doc = Document(
@@ -63,6 +63,24 @@ doc.body.append(Section(
             ],
         ),
     ],
+))
+
+
+doc.body.append(Section(
+    title='A list',
+    body=[
+        'This is an unordered list, a long one:',
+        UnorderedList(
+            items=[
+                [
+                    'First list item',
+                    'With a second paragraph inside! BTW Armour-piercing fin-stabilized discarding sabot '
+                    '(APFSDS), long dart penetrator, or simply dart ammunition is a type of kinetic '
+                    'energy penetrator ammunition used to attack modern vehicle armour.',
+                ]
+            ] + [f'Item {i}' for i in range(50)],
+        )
+    ]
 ))
 
 
