@@ -17,6 +17,5 @@ def test_example(tmp_path_factory):
 
 
 def assert_same_content(path_a, path_b):
-    print('Comparing', path_a, path_b)
     with open(path_a, 'rb') as fp_a, open(path_b, 'rb') as fp_b:
         assert fp_a.read() == fp_b.read()
