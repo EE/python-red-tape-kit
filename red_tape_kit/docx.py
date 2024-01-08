@@ -5,7 +5,7 @@ import docx
 from docx.oxml.ns import qn
 from docx.oxml.shared import OxmlElement
 
-from .doc_ast import DefinitionList, Image, Paragraph, Section, Sequence, Table, UnorderedList
+from .doc_ast import DefinitionList, Image, Paragraph, Section, Sequence, Table, TableCellSpan, UnorderedList
 
 
 class DOCXRenderer:
@@ -115,15 +115,22 @@ class DOCXRenderer:
         self.docx.add_paragraph(paragraph.text.plain_string, style=style)
 
     def add_table(self, table_data):
-        table = self.docx.add_table(rows=1, cols=len(table_data.headings))
+        column_count = len(table_data.head.rows[0])
+        table = self.docx.add_table(
+            rows=0,
+            cols=column_count,
+        )
         table.style = 'Table Grid'
-        hdr_cells = table.rows[0].cells
-        for i, heading in enumerate(table_data.headings):
-            hdr_cells[i].text = heading.plain_string
-        for data_row in table_data.rows:
-            row_cells = table.add_row().cells
-            for i, data_cell in enumerate(data_row):
-                row_cells[i].text = data_cell.plain_string
+        self.add_elementary_table(table, table_data.head)
+        self.add_elementary_table(table, table_data.body)
+
+    def add_elementary_table(self, table, elementary_table):
+        for row in elementary_table.rows:
+            doc_cells = table.add_row().cells
+            for i, cell in enumerate(row):
+                if isinstance(cell, TableCellSpan):
+                    continue
+                doc_cells[i].text = cell.plain_string
 
     def add_unordered_list(self, unordered_list, list_level):
         if list_level is None:

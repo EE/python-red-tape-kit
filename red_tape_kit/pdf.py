@@ -3,7 +3,8 @@ from logging import getLogger
 from fpdf import FPDF, TitleStyle, XPos, YPos
 
 from .doc_ast import (
-    Attachment, DefinitionList, Image, InlineSequence, Paragraph, Section, Sequence, Table, Text, UnorderedList,
+    Attachment, DefinitionList, Image, InlineSequence, Paragraph, Section, Sequence, Table, TableCellSpan, Text,
+    UnorderedList,
 )
 
 
@@ -118,14 +119,18 @@ class FPDFRenderer(FPDF):
 
     def add_table(self, table_data):
         with self.table() as table:
-            heading_row = table.row()
-            for heading in table_data.headings:
-                heading_row.cell(heading.plain_string)
-            for data_row in table_data.rows:
-                table_row = table.row()
-                for data_cell in data_row:
-                    table_row.cell(data_cell.plain_string)
+            self.add_elementary_table(table, table_data.head)
+            self.add_elementary_table(table, table_data.body)
         return True
+
+    def add_elementary_table(self, pdf_table, elementary_table):
+        for row in elementary_table.rows:
+            pdf_row = pdf_table.row()
+            for cell in row:
+                if isinstance(cell, TableCellSpan):
+                    pdf_row.cell('')
+                else:
+                    pdf_row.cell(cell.plain_string)
 
     def add_unordered_list(self, unordered_list):
         orig_left_margin = self.l_margin
