@@ -102,7 +102,7 @@ if __name__ == '__main__':
     from red_tape_kit.html import HTMLRenderer
     from red_tape_kit.pdf import FPDFRenderer
     with open('example.html', 'wb') as fp:
-        HTMLRenderer(doc).render(fp)
+        HTMLRenderer(doc).render(fp, indent='\t')
     with open('example.pdf', 'wb') as fp:
         FPDFRenderer(doc).render(fp)
     with open('example.docx', 'wb') as fp:
