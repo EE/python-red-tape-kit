@@ -1,7 +1,7 @@
 import datetime
 import io
 
-from red_tape_kit.doc_ast import Attachment, Document, InlineSequence, Section, Table, UnorderedList
+from red_tape_kit.doc_ast import Attachment, Document, InlineSequence, Section, Table, TableCellSpan, UnorderedList
 
 
 doc = Document(
@@ -66,10 +66,18 @@ doc.body.append(Section(
     body=[
         'This is a table, but may be not that much pretty:',
         Table(
-            headings=['Heading 1', 'Heading 2'],
-            rows=[
-                ['A1', 'A2'],
-                ['B1', 'B2'],
+            head=[
+                [
+                    'n',
+                    'addition', TableCellSpan.COLUMN, TableCellSpan.COLUMN,
+                    'multiplication', TableCellSpan.COLUMN, TableCellSpan.COLUMN,
+                ],
+                [TableCellSpan.ROW, '0', '1', '2', '0', '1', '2'],
+            ],
+            body=[
+                ['0', '0', '1', '2', '0', '0', TableCellSpan.COLUMN],
+                ['1', '1', '2', '3', '0', '1', '2'],
+                ['2', '2', '3', '4', TableCellSpan.ROW, '2', '4'],
             ],
         ),
     ],

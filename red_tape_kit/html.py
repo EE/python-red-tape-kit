@@ -2,7 +2,8 @@ import xml.etree.ElementTree as ET
 from base64 import b64encode
 
 from .doc_ast import (
-    Attachment, DefinitionList, Image, InlineSequence, Paragraph, Section, Sequence, Table, Text, UnorderedList,
+    Attachment, DefinitionList, Image, InlineSequence, Paragraph, Section, Sequence, Table, TableCellSpan, Text,
+    UnorderedList,
 )
 
 
@@ -76,16 +77,24 @@ class HTMLRenderer:
     def add_table(self, html_el, table_data):
         table = ET.SubElement(html_el, 'table')
         thead = ET.SubElement(table, 'thead')
-        tr = ET.SubElement(thead, 'tr')
-        for heading in table_data.headings:
-            th = ET.SubElement(tr, 'th')
-            self.add_inline_element(th, heading)
+        self.add_elementary_table(thead, table_data.head, cell_tag='th')
         tbody = ET.SubElement(table, 'tbody')
-        for data_row in table_data.rows:
-            tr = ET.SubElement(tbody, 'tr')
-            for data_cell in data_row:
-                td = ET.SubElement(tr, 'td')
-                self.add_inline_element(td, data_cell)
+        self.add_elementary_table(tbody, table_data.body, cell_tag='td')
+
+    def add_elementary_table(self, html_el, elementary_table, cell_tag):
+        for ri, row in enumerate(elementary_table.rows):
+            tr = ET.SubElement(html_el, 'tr')
+            for ci, cell in enumerate(row):
+                if isinstance(cell, TableCellSpan):
+                    continue
+                td = ET.SubElement(tr, cell_tag)
+                column_span = elementary_table.get_column_span(ri, ci)
+                if column_span > 1:
+                    td.set('colspan', str(column_span))
+                row_span = elementary_table.get_row_span(ri, ci)
+                if row_span > 1:
+                    td.set('rowspan', str(row_span))
+                self.add_inline_element(td, cell)
 
     def add_unordered_list(self, html_el, unordered_list):
         ul = ET.SubElement(html_el, 'ul')

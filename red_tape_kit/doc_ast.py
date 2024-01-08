@@ -1,6 +1,7 @@
 import datetime
 from dataclasses import dataclass
-from typing import BinaryIO, Dict, List
+from enum import Enum
+from typing import BinaryIO, Dict, List, Union
 
 
 class BlockElement:
@@ -94,15 +95,77 @@ class Paragraph(BlockElement):
         )
 
 
+class TableCellSpan(Enum):
+    ROW = object()
+    COLUMN = object()
+
+    def normalized(self) -> 'TableCellSpan':
+        return self
+
+
+TableCell = Union[InlineElement, TableCellSpan]
+
+
+@dataclass
+class ElementaryTable:
+    rows: List[List[TableCell]]
+
+    def normalized(self) -> 'ElementaryTable':
+        return ElementaryTable(
+            rows=[
+                [normalized_inline(cell) for cell in row]
+                for row in self.rows
+            ],
+        )
+
+    def get_column_span(self, row_index: int, column_index: int) -> int:
+        """
+        Returns how many columns the cell spans.
+        """
+        span = 1
+        while True:
+            cell = self.get_cell(row_index, column_index + span)
+            if cell is TableCellSpan.COLUMN:
+                span += 1
+            else:
+                return span
+
+    def get_row_span(self, row_index: int, column_index: int) -> int:
+        """
+        Returns how many rows the cell spans.
+        """
+        span = 1
+        while True:
+            cell = self.get_cell(row_index + span, column_index)
+            if cell is TableCellSpan.ROW:
+                span += 1
+            else:
+                return span
+
+    def get_cell(self, row_index: int, column_index: int) -> TableCell:
+        if row_index < 0 or row_index >= len(self.rows):
+            return None
+        row = self.rows[row_index]
+        if column_index < 0 or column_index >= len(row):
+            return None
+        return row[column_index]
+
+
 @dataclass
 class Table(BlockElement):
-    headings: List[InlineElement]
-    rows: List[List[InlineElement]]
+    head: ElementaryTable
+    body: ElementaryTable
 
     def normalized(self) -> 'Table':
+        head = self.head
+        if isinstance(head, list):
+            head = ElementaryTable(rows=head)
+        body = self.body
+        if isinstance(body, list):
+            body = ElementaryTable(rows=body)
         return Table(
-            headings=[normalized_inline(heading) for heading in self.headings],
-            rows=[[normalized_inline(cell) for cell in row] for row in self.rows],
+            head=head.normalized(),
+            body=body.normalized(),
         )
 
 
