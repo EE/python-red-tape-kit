@@ -5,7 +5,7 @@ import factory
 import pytest
 from freezegun import freeze_time
 
-from red_tape_kit.doc_ast import Attachment, Document, InlineSequence, Paragraph, Sequence, Text
+from red_tape_kit.ast import Attachment, Document, InlineSequence, Paragraph, Sequence, Text
 from red_tape_kit.docx import DOCXRenderer
 from red_tape_kit.html import HTMLRenderer
 from red_tape_kit.pdf import FPDFRenderer

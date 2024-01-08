@@ -2,7 +2,7 @@ from logging import getLogger
 
 from fpdf import FPDF, TitleStyle, XPos, YPos
 
-from .doc_ast import (
+from .ast import (
     Attachment, DefinitionList, Image, InlineSequence, Paragraph, Section, Sequence, Table, TableCellSpan, Text,
     UnorderedList,
 )
