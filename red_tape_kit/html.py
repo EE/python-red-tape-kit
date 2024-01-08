@@ -136,5 +136,8 @@ class HTMLRenderer:
         a.set('href', f'data:application/octet-stream;base64,{b64_str}')
         self.add_inline_element(a, attachment.text)
 
-    def render(self, f):
-        ET.ElementTree(self.root).write(f, encoding='utf-8', method='html')
+    def render(self, f, indent=None):
+        tree = ET.ElementTree(self.root)
+        if indent is not None:
+            ET.indent(tree, space=indent, level=0)
+        tree.write(f, encoding='utf-8', method='html')
