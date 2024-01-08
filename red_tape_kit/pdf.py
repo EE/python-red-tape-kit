@@ -118,19 +118,25 @@ class FPDFRenderer(FPDF):
         return self.add_inline_element(paragraph.text)
 
     def add_table(self, table_data):
-        with self.table() as table:
+        with self.table(
+            num_heading_rows=len(table_data.head.rows),
+        ) as table:
             self.add_elementary_table(table, table_data.head)
             self.add_elementary_table(table, table_data.body)
         return True
 
     def add_elementary_table(self, pdf_table, elementary_table):
-        for row in elementary_table.rows:
+        for ri, row in enumerate(elementary_table.rows):
             pdf_row = pdf_table.row()
-            for cell in row:
+            for ci, cell in enumerate(row):
                 if isinstance(cell, TableCellSpan):
-                    pdf_row.cell('')
+                    pass
                 else:
-                    pdf_row.cell(cell.plain_string)
+                    pdf_row.cell(
+                        cell.plain_string,
+                        colspan=elementary_table.get_column_span(ri, ci),
+                        rowspan=elementary_table.get_row_span(ri, ci),
+                    )
 
     def add_unordered_list(self, unordered_list):
         orig_left_margin = self.l_margin

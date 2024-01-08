@@ -68,16 +68,20 @@ doc.body.append(Section(
         Table(
             head=[
                 [
-                    'n',
+                    'number',
                     'addition', TableCellSpan.COLUMN, TableCellSpan.COLUMN,
                     'multiplication', TableCellSpan.COLUMN, TableCellSpan.COLUMN,
                 ],
-                [TableCellSpan.ROW, '0', '1', '2', '0', '1', '2'],
+                [
+                    TableCellSpan.ROW,
+                    'of 0', 'of 1', 'of 2',
+                    'by 0', 'by 1', 'by 2',
+                ],
             ],
             body=[
-                ['0', '0', '1', '2', '0', '0', TableCellSpan.COLUMN],
-                ['1', '1', '2', '3', '0', '1', '2'],
-                ['2', '2', '3', '4', TableCellSpan.ROW, '2', '4'],
+                ['0', '0', '1', '2', '0', '0 (colspan)', TableCellSpan.COLUMN],
+                ['1', 'who cares? (rowspan & colspan)', TableCellSpan.COLUMN, '3', '0 (rowspan)', '1', '2'],
+                ['2', TableCellSpan.ROW, TableCellSpan.ROW, '4', TableCellSpan.ROW, '2', '4'],
             ],
         ),
     ],
