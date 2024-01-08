@@ -1,7 +1,7 @@
 import xml.etree.ElementTree as ET
 from base64 import b64encode
 
-from .doc_ast import (
+from .ast import (
     Attachment, DefinitionList, Image, InlineSequence, Paragraph, Section, Sequence, Table, TableCellSpan, Text,
     UnorderedList,
 )

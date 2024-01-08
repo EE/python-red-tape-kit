@@ -1,7 +1,7 @@
 import datetime
 import io
 
-from red_tape_kit.doc_ast import Attachment, Document, InlineSequence, Section, Table, TableCellSpan, UnorderedList
+from red_tape_kit.ast import Attachment, Document, InlineSequence, Section, Table, TableCellSpan, UnorderedList
 
 
 doc = Document(

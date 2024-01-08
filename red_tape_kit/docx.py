@@ -5,7 +5,7 @@ import docx
 from docx.oxml.ns import qn
 from docx.oxml.shared import OxmlElement
 
-from .doc_ast import DefinitionList, Image, Paragraph, Section, Sequence, Table, TableCellSpan, UnorderedList
+from .ast import DefinitionList, Image, Paragraph, Section, Sequence, Table, TableCellSpan, UnorderedList
 
 
 class DOCXRenderer:
