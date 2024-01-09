@@ -13,20 +13,24 @@ logger = getLogger(__name__)
 
 class FPDFRenderer(FPDF):
     DEFAULT_LINE_HEIGHT = 1.5  # relative to font size
-    default_font_family = 'helvetica'
+    DEFAULT_FONT_FAMILY = 'helvetica'
+    DEFAULT_FONT_SIZE = 10  # pt
+    MARGIN_LEFT = 20  # mm
+    MARGIN_RIGHT = 20  # mm
+    MARGIN_TOP = 20  # mm
+    MARGIN_BOTTOM = 20  # mm
     UNORDERED_LIST_BULLET = '-'
 
     def __init__(self, document, **kwargs):
         super().__init__(**kwargs, unit='mm', format='A4')
         self.document = document
         self.add_fonts()
-        self.set_left_margin(20)
-        self.set_right_margin(20)
         self.set_meta()
+        self.configure_margins()
         self.add_cover()
 
         common_section_style_kwargs = dict(
-            font_family=self.default_font_family,
+            font_family=self.DEFAULT_FONT_FAMILY,
             b_margin=5,
         )
         self.set_section_title_styles(
@@ -46,7 +50,6 @@ class FPDFRenderer(FPDF):
                 **common_section_style_kwargs,
             ),
         )
-        self.add_page()
         self.add_body()
 
     def set_meta(self):
@@ -57,14 +60,20 @@ class FPDFRenderer(FPDF):
         self.set_creator(self.document.creator.plain_string)
         self.set_creation_date(self.document.creation_date)
 
+    def configure_margins(self):
+        self.set_left_margin(self.MARGIN_LEFT)
+        self.set_right_margin(self.MARGIN_RIGHT)
+        self.set_top_margin(self.MARGIN_TOP)
+        self.set_auto_page_break(True, self.MARGIN_BOTTOM)
+
     def add_cover(self):
         self.add_page()
         self.set_y(140)
         self.set_x(60)
-        self.set_font(self.default_font_family, size=24)
+        self.set_font(self.DEFAULT_FONT_FAMILY, size=24)
         self.add_inline_element(self.document.title)
         self.ln(self.get_line_height())
-        self.set_font(self.default_font_family, size=12)
+        self.set_font(self.DEFAULT_FONT_FAMILY, size=12)
         self.set_x(60)
         self.add_inline_element(self.document.subject)
         self.ln(self.get_line_height())
@@ -75,7 +84,8 @@ class FPDFRenderer(FPDF):
         self.cell_nl(text=self.document.creation_place_and_date)
 
     def add_body(self):
-        self.set_font(self.default_font_family, size=10)
+        self.add_page()
+        self.set_font(self.DEFAULT_FONT_FAMILY, size=self.DEFAULT_FONT_SIZE)
         self.add_element(self.document.body, level=0)
 
     def add_element(self, element, level):
@@ -213,7 +223,7 @@ class FPDFRenderer(FPDF):
         # Position cursor at 1.5 cm from bottom:
         self.set_y(-15)
         # page number
-        self.set_font(self.default_font_family, size=8)
+        self.set_font(self.DEFAULT_FONT_FAMILY, size=8)
         self.cell(0, 10, f"Strona {self.page_no()}/{{nb}}", align="C")
 
     def add_fonts(self):
