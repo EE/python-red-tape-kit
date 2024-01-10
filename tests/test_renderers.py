@@ -142,6 +142,33 @@ def test_not_dependent_on_current_date(render):
     assert a == b
 
 
+@pytest.mark.xfail(reason='Preserving final ln in fpdf is hard')
+def test_empty_paragraph_at_the_end_is_represented(render):
+    doc_a = DocumentFactory(
+        body=Sequence([
+            Paragraph(text=Text('A')),
+            Paragraph(text=Text('')),
+        ]),
+    )
+    doc_b = DocumentFactory(
+        body=Paragraph(text=Text('A')),
+    )
+    assert render(doc_a) != render(doc_b)
+
+
+def test_empty_paragraph_is_represented(render):
+    doc_a = DocumentFactory(
+        body=Sequence([
+            Paragraph(text=Text('')),
+            Paragraph(text=Text('A')),
+        ]),
+    )
+    doc_b = DocumentFactory(
+        body=Paragraph(text=Text('A')),
+    )
+    assert render(doc_a) != render(doc_b)
+
+
 def test_empty_attachment_no_smoke(render):
     doc = DocumentFactory(
         body=Paragraph(text=Attachment(

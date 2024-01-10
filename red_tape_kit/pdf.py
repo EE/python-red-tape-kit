@@ -19,7 +19,10 @@ class FPDFRenderer(FPDF):
     MARGIN_RIGHT = 20  # mm
     MARGIN_TOP = 20  # mm
     MARGIN_BOTTOM = 20  # mm
+    SEQUENCE_SPACE = 7  # mm
+    UNORDERED_LIST_HSPACE = 7  # mm
     UNORDERED_LIST_BULLET = '-'
+    UNORDERED_LIST_BULLET_SPACE = 5  # mm
 
     def __init__(self, document, **kwargs):
         super().__init__(**kwargs, unit='mm', format='A4')
@@ -114,7 +117,7 @@ class FPDFRenderer(FPDF):
         ln_required = False
         for sub_element in sequence.items:
             if ln_required:
-                self.ln(7)
+                self.ln(self.SEQUENCE_SPACE)
             ln_required = self.add_element(sub_element, level)
             if ln_required:
                 anything_generated = True
@@ -125,7 +128,8 @@ class FPDFRenderer(FPDF):
         return self.add_element(section.body, level + 1)
 
     def add_paragraph(self, paragraph):
-        return self.add_inline_element(paragraph.text)
+        self.add_inline_element(paragraph.text)
+        return True
 
     def add_table(self, table_data):
         with self.table(
@@ -150,11 +154,11 @@ class FPDFRenderer(FPDF):
 
     def add_unordered_list(self, unordered_list):
         orig_left_margin = self.l_margin
-        new_left_margin = orig_left_margin + 5
+        new_left_margin = orig_left_margin + self.UNORDERED_LIST_BULLET_SPACE
         self.set_left_margin(new_left_margin)
         for i, item in enumerate(unordered_list.items):
             if i > 0:
-                self.ln(7)
+                self.ln(self.UNORDERED_LIST_HSPACE)
             with self.unbreakable() as self:
                 self.set_x(orig_left_margin)
                 self.cell(text=self.UNORDERED_LIST_BULLET)
@@ -191,7 +195,7 @@ class FPDFRenderer(FPDF):
 
     def add_text(self, text):
         self.write_lh(text.text)
-        return text != ''
+        return text.text != ''
 
     def add_inline_sequence(self, inline_sequence):
         anything_generated = False
