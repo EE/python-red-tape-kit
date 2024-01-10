@@ -1,10 +1,10 @@
 from logging import getLogger
 
-from fpdf import FPDF, TitleStyle, XPos, YPos
+from fpdf import FPDF, FontFace, TitleStyle, XPos, YPos
 
 from .ast import (
-    Attachment, DefinitionList, Image, InlineSequence, Paragraph, Section, Sequence, Table, TableCellSpan, Text,
-    UnorderedList,
+    Attachment, DefinitionList, Image, InlineSequence, Paragraph, Section, Sequence, Strong, Table, TableCellSpan,
+    Text, UnorderedList,
 )
 
 
@@ -184,6 +184,8 @@ class FPDFRenderer(FPDF):
             return self.add_inline_sequence(inline_element)
         elif isinstance(inline_element, Attachment):
             return self.add_attachment(inline_element)
+        elif isinstance(inline_element, Strong):
+            return self.add_strong(inline_element)
         else:
             raise ValueError(f'Unknown inline element type {inline_element}')
 
@@ -215,6 +217,10 @@ class FPDFRenderer(FPDF):
             h=self.font_size,
         )
         return True
+
+    def add_strong(self, strong):
+        with self.use_font_face(FontFace(emphasis="BOLD")):
+            return self.add_inline_element(strong.text)
 
     def header(self):
         pass

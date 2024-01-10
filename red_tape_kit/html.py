@@ -2,8 +2,8 @@ import xml.etree.ElementTree as ET
 from base64 import b64encode
 
 from .ast import (
-    Attachment, DefinitionList, Image, InlineSequence, Paragraph, Section, Sequence, Table, TableCellSpan, Text,
-    UnorderedList,
+    Attachment, DefinitionList, Image, InlineSequence, Paragraph, Section, Sequence, Strong, Table, TableCellSpan,
+    Text, UnorderedList,
 )
 
 
@@ -131,6 +131,9 @@ class HTMLRenderer:
                 self.add_inline_element(html_el, sub_element)
         elif isinstance(element, Attachment):
             self.add_attachment(html_el, element)
+        elif isinstance(element, Strong):
+            strong = ET.SubElement(html_el, 'strong')
+            self.add_inline_element(strong, element.text)
         else:
             raise ValueError(f'Unknown inline element type {type(element)}')
 
