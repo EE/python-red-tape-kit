@@ -1,7 +1,7 @@
 import datetime
 import io
 
-from red_tape_kit.ast import Attachment, Document, InlineSequence, Section, Table, TableCellSpan, UnorderedList
+from red_tape_kit.ast import Attachment, Document, InlineSequence, Section, Strong, Table, TableCellSpan, UnorderedList
 
 
 doc = Document(
@@ -20,7 +20,8 @@ doc.body.append(Section(
     title='The First Section',
     body=[
         'The first paragraph.',
-        'The second paragraph.',
+        Strong('Kava') + ' or ' + Strong('kava kava') + ' (Piper methysticum: Latin \'pepper\''
+        ' and Latinized Greek \'intoxicating\') is a crop of the Pacific Islands.',
         InlineSequence([
             'We allow ',
             Attachment(

@@ -33,6 +33,9 @@ class InlineElement:
     def plain_string(self) -> str:
         raise NotImplementedError
 
+    def __add__(self, other: 'InlineElement') -> 'InlineSequence':
+        return InlineSequence(items=[self, other])
+
 
 @dataclass
 class Document:
@@ -257,6 +260,18 @@ class Attachment(InlineElement):
             basename=self.basename,
             text=normalized_inline(self.text),
         )
+
+    @property
+    def plain_string(self) -> str:
+        return self.text.plain_string
+
+
+@dataclass(frozen=True)
+class Strong(InlineElement):
+    text: InlineElement
+
+    def normalized(self) -> 'Strong':
+        return Strong(text=normalized_inline(self.text))
 
     @property
     def plain_string(self) -> str:
