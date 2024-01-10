@@ -1,4 +1,5 @@
 import datetime
+import typing
 from dataclasses import dataclass
 from enum import Enum
 from typing import BinaryIO, Dict, List, Union
@@ -34,7 +35,7 @@ class InlineElement:
         raise NotImplementedError
 
     def __add__(self, other: 'InlineElement') -> 'InlineSequence':
-        return InlineSequence(items=[self, other])
+        return InlineSequence(items=(self, other))
 
 
 @dataclass
@@ -236,11 +237,11 @@ class Text(InlineElement):
 
 @dataclass(frozen=True)
 class InlineSequence(InlineElement):
-    items: List[InlineElement]
+    items: typing.Sequence[InlineElement]
 
     def normalized(self) -> 'InlineSequence':
         return InlineSequence(
-            items=[normalized_inline(item) for item in self.items],
+            items=tuple(normalized_inline(item) for item in self.items),
         )
 
     @property

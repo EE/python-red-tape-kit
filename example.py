@@ -1,7 +1,9 @@
 import datetime
 import io
 
-from red_tape_kit.ast import Attachment, Document, InlineSequence, Section, Strong, Table, TableCellSpan, UnorderedList
+from red_tape_kit.ast import (
+    Attachment, Document, InlineSequence, Section, Strong, Table, TableCellSpan, Text, UnorderedList,
+)
 
 
 doc = Document(
@@ -57,6 +59,10 @@ doc.body.append(Section(
         {
             'term 1': 'definition 1',
             'term 2': 'definition 2',
+            Text('you can use ') + Strong('strong') + ' here': [
+                'And here you can use block elmements.',
+                'Like this paragraph.',
+            ],
         }
     ]
 ))
