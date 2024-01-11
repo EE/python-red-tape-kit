@@ -1,6 +1,8 @@
 from logging import getLogger
 
 from fpdf import FPDF, FontFace, TitleStyle, XPos, YPos
+from fpdf.outline import OutlineSection
+from fpdf.syntax import DestinationXYZ
 
 from .ast import (
     Attachment, DefinitionList, Image, InlineSequence, Paragraph, Section, Sequence, Strong, Table, TableCellSpan,
@@ -31,28 +33,7 @@ class FPDFRenderer(FPDF):
         self.set_meta()
         self.configure_margins()
         self.add_cover()
-
-        common_section_style_kwargs = dict(
-            font_family=self.DEFAULT_FONT_FAMILY,
-            b_margin=5,
-        )
-        self.set_section_title_styles(
-            level0=TitleStyle(
-                font_size_pt=18,
-                t_margin=20,
-                **common_section_style_kwargs,
-            ),
-            level1=TitleStyle(
-                font_size_pt=14,
-                t_margin=15,
-                **common_section_style_kwargs,
-            ),
-            level2=TitleStyle(
-                font_size_pt=10,
-                t_margin=10,
-                **common_section_style_kwargs,
-            ),
-        )
+        self.configure_section_title_styles()
         self.add_body()
 
     def set_meta(self):
@@ -85,6 +66,29 @@ class FPDFRenderer(FPDF):
         self.ln(self.get_line_height())
         self.set_x(60)
         self.cell_nl(text=self.document.creation_place_and_date)
+
+    def configure_section_title_styles(self):
+        common_section_style_kwargs = dict(
+            font_family=self.DEFAULT_FONT_FAMILY,
+            b_margin=5,
+        )
+        self.set_section_title_styles(
+            level0=TitleStyle(
+                font_size_pt=18,
+                t_margin=6,
+                **common_section_style_kwargs,
+            ),
+            level1=TitleStyle(
+                font_size_pt=14,
+                t_margin=4,
+                **common_section_style_kwargs,
+            ),
+            level2=TitleStyle(
+                font_size_pt=10,
+                t_margin=3,
+                **common_section_style_kwargs,
+            ),
+        )
 
     def add_body(self):
         self.add_page()
@@ -124,8 +128,29 @@ class FPDFRenderer(FPDF):
         return anything_generated
 
     def add_section(self, section, level):
-        self.start_section(section.title.plain_string, level)
-        return self.add_element(section.body, level + 1)
+        section_style = self.section_title_styles[level]
+
+        with (
+            self.offset_rendering() as pdf,
+            pdf._use_title_style(section_style),
+        ):
+            pdf.add_inline_element(section.title)
+            pdf.ln(pdf.get_line_height())
+        if pdf.page_break_triggered:
+            self.add_page()
+
+        dest = DestinationXYZ(self.page, top=self.h_pt - self.y * self.k)
+        with (
+            self._marked_sequence(title=section.title.plain_string) as struct_elem,
+            self._use_title_style(section_style),
+        ):
+            self.add_inline_element(section.title)
+            self.ln(self.get_line_height())
+        self._outline.append(
+            OutlineSection(section.title.plain_string, level, self.page, dest, struct_elem)
+        )
+        self.add_element(section.body, level + 1)
+        return True
 
     def add_paragraph(self, paragraph):
         self.add_inline_element(paragraph.text)
