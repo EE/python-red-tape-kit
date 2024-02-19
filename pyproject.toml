@@ -10,8 +10,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.11"
-# TODO: update to official release once PR https://github.com/py-pdf/fpdf2/pull/1088 is released
-fpdf2 = {url = "https://github.com/py-pdf/fpdf2/archive/f099a32bdc5f21e468183a83ff700d5dd7570c1f.zip", optional = true}
+fpdf2 = {version = "^2.7.8", optional = true}
 python-docx = {version = "^1.1.0", optional = true}
 beautifulsoup4 = {version = "^4.12.2", optional = true}
 
