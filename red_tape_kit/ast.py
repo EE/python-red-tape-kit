@@ -196,6 +196,11 @@ class DefinitionList(BlockElement):
         )
 
 
+class PageBreak(BlockElement):
+    def normalized(self) -> 'PageBreak':
+        return self
+
+
 @dataclass
 class Image(BlockElement):
     image_io: BinaryIO

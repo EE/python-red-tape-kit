@@ -2,8 +2,8 @@ import xml.etree.ElementTree as ET
 from base64 import b64encode
 
 from .ast import (
-    Attachment, DefinitionList, Image, InlineSequence, Paragraph, Section, Sequence, Strong, Table, TableCellSpan,
-    Text, UnorderedList,
+    Attachment, DefinitionList, Image, InlineSequence, PageBreak, Paragraph, Section, Sequence, Strong, Table,
+    TableCellSpan, Text, UnorderedList,
 )
 
 
@@ -55,6 +55,8 @@ class HTMLRenderer:
             self.add_sequence(html_el, element, heading_level)
         elif isinstance(element, Image):
             self.add_image(html_el, element)
+        elif isinstance(element, PageBreak):
+            ET.SubElement(html_el, 'hr', style='page-break-after: always;')
         else:
             raise ValueError(f'Unknown element type {type(element)}')
 

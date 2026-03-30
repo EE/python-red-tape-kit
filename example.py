@@ -2,7 +2,7 @@ import datetime
 import io
 
 from red_tape_kit.ast import (
-    Attachment, Document, InlineSequence, Section, Strong, Table, TableCellSpan, Text, UnorderedList,
+    Attachment, Document, InlineSequence, PageBreak, Section, Strong, Table, TableCellSpan, Text, UnorderedList,
 )
 
 
@@ -66,6 +66,9 @@ doc.body.append(Section(
         }
     ]
 ))
+
+
+doc.body.append(PageBreak())
 
 
 doc.body.append(Section(

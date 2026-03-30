@@ -5,8 +5,8 @@ from fpdf.outline import OutlineSection
 from fpdf.syntax import DestinationXYZ
 
 from .ast import (
-    Attachment, DefinitionList, Image, InlineSequence, Paragraph, Section, Sequence, Strong, Table, TableCellSpan,
-    Text, UnorderedList,
+    Attachment, DefinitionList, Image, InlineSequence, PageBreak, Paragraph, Section, Sequence, Strong, Table,
+    TableCellSpan, Text, UnorderedList,
 )
 
 
@@ -113,6 +113,8 @@ class FPDFRenderer(FPDF):
             return self.add_sequence(element, level)
         elif isinstance(element, Image):
             return self.add_image(element)
+        elif isinstance(element, PageBreak):
+            return self.add_page_break()
         else:
             raise ValueError(f'Unknown element type {element}')
 
@@ -201,6 +203,10 @@ class FPDFRenderer(FPDF):
             ]))
         self.add_element(UnorderedList(list_items), level=None)
         return True
+
+    def add_page_break(self):
+        self.add_page()
+        return False
 
     def add_image(self, image):
         self.image(image.image_io, w=100)
