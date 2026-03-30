@@ -5,7 +5,7 @@ import docx
 from docx.oxml.ns import qn
 from docx.oxml.shared import OxmlElement
 
-from .ast import DefinitionList, Image, Paragraph, Section, Sequence, Table, TableCellSpan, UnorderedList
+from .ast import DefinitionList, Image, PageBreak, Paragraph, Section, Sequence, Table, TableCellSpan, UnorderedList
 
 
 class DOCXRenderer:
@@ -84,6 +84,8 @@ class DOCXRenderer:
             self.add_sequence(element, section_level, list_level, first_in_list_item)
         elif isinstance(element, Image):
             self.add_image(element)
+        elif isinstance(element, PageBreak):
+            self.add_page_break()
         else:
             raise ValueError(f'Unknown element type {element}')
 
@@ -91,6 +93,9 @@ class DOCXRenderer:
         for sub_element in sequence.items:
             self.add_element(sub_element, section_level, list_level, first_in_list_item)
             first_in_list_item = False
+
+    def add_page_break(self):
+        self.docx.add_page_break()
 
     def add_section(self, section, section_level):
         self.docx.add_heading(section.title.plain_string, section_level)
